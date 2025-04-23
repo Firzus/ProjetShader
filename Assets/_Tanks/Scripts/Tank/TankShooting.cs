@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.VFX;
 
 namespace Tanks.Complete
 {
@@ -47,7 +48,10 @@ namespace Tanks.Complete
         private bool m_IsCharging = false;          // Are we currently charging the shot
         private float m_BaseMinLaunchForce;         // The initial value of m_MinLaunchForce
         private float m_ShotCooldownTimer;          // The timer counting down before a shot is allowed again
-        
+
+        [SerializeField] private VisualEffect m_ChargingVFX; // The visual effect that plays when the tank is charging a shot
+
+
         private void OnEnable()
         {
             // When the tank is turned on, reset the launch force, the UI and the power ups
@@ -66,6 +70,8 @@ namespace Tanks.Complete
             m_InputUser = GetComponent<TankInputUser>();
             if (m_InputUser == null)
                 m_InputUser = gameObject.AddComponent<TankInputUser>();
+
+            m_ChargingVFX.Stop();
         }
 
         private void Start ()
@@ -78,6 +84,16 @@ namespace Tanks.Complete
 
             // The rate that the launch force charges up is the range of possible forces by the max charge time.
             m_ChargeSpeed = (m_MaxLaunchForce - m_MinLaunchForce) / m_MaxChargeTime;
+
+            MeshRenderer[] meshRenderers = GetComponentsInChildren<MeshRenderer>();
+            foreach (MeshRenderer meshRenderer in meshRenderers)
+            {
+                if (meshRenderer.material != null)
+                {
+                    m_ChargingVFX.SetVector4("FlashColor", meshRenderer.material.color);
+                    break;
+                }
+            }
         }
 
 
@@ -107,6 +123,7 @@ namespace Tanks.Complete
             // Change the clip to the charging clip and start it playing.
             m_ShootingAudio.clip = m_ChargingClip;
             m_ShootingAudio.Play ();
+            m_ChargingVFX.Play();
         }
 
         public void StopCharging()
@@ -115,6 +132,7 @@ namespace Tanks.Complete
             {
                 Fire();
                 m_IsCharging = false;
+                m_ChargingVFX.Stop();
             }
         }
 
@@ -129,13 +147,14 @@ namespace Tanks.Complete
                 // ... use the max force and launch the shell.
                 m_CurrentLaunchForce = m_MaxLaunchForce;
                 Fire ();
+                m_ChargingVFX.Stop();
             }
             // Otherwise, if the fire button is being held and the shell hasn't been launched yet...
             else if (m_IsCharging && !m_Fired)
             {
                 // Increment the launch force and update the slider.
                 m_CurrentLaunchForce += m_ChargeSpeed * Time.deltaTime;
-
+                m_ChargingVFX.SetVector3("Scale", new Vector3(1, 1, 1) * CurrentChargeRatio * 2f);
                 m_AimSlider.value = m_CurrentLaunchForce;
             }
             // Otherwise, if the fire button is released and the shell hasn't been launched yet...
@@ -143,6 +162,7 @@ namespace Tanks.Complete
             {
                 // ... launch the shell.
                 Fire ();
+                m_ChargingVFX.Stop();
                 m_IsCharging = false;
             }
         }
@@ -174,13 +194,17 @@ namespace Tanks.Complete
 
                 // Change the clip to the charging clip and start it playing.
                 m_ShootingAudio.clip = m_ChargingClip;
-                m_ShootingAudio.Play ();
+                m_ShootingAudio.Play();
+                m_ChargingVFX.Play();
             }
             // Otherwise, if the fire button is being held and the shell hasn't been launched yet...
             else if (fireAction.IsPressed() && !m_Fired)
             {
                 // Increment the launch force and update the slider.
                 m_CurrentLaunchForce += m_ChargeSpeed * Time.deltaTime;
+
+                Vector3 chargingScale = Vector3.Lerp(new Vector3(0f, 0f, 0f), new Vector3(3f, 3f, 3f), CurrentChargeRatio);
+                m_ChargingVFX.SetVector3("Scale", chargingScale);
 
                 m_AimSlider.value = m_CurrentLaunchForce;
             }
@@ -189,6 +213,7 @@ namespace Tanks.Complete
             {
                 // ... launch the shell.
                 Fire ();
+                m_ChargingVFX.Stop();
             }
         }
 
@@ -197,6 +222,7 @@ namespace Tanks.Complete
         {
             // Set the fired flag so only Fire is only called once.
             m_Fired = true;
+            m_ChargingVFX.Stop();
 
             // Create an instance of the shell and store a reference to it's rigidbody.
             Rigidbody shellInstance =
