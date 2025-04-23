@@ -31,11 +31,11 @@ namespace Tanks.Complete
 
         [HideInInspector]
         public TankInputUser m_InputUser;           // The Input User component for that tanks. Contains the Input Actions. 
-        
+
         public float CurrentChargeRatio =>
             (m_CurrentLaunchForce - m_MinLaunchForce) / (m_MaxLaunchForce - m_MinLaunchForce); //The charging amount between 0-1
         public bool IsCharging => m_IsCharging;
-        
+
         public bool m_IsComputerControlled { get; set; } = false;
 
         private string m_FireButton;                // The input axis that is used for launching shells.
@@ -75,12 +75,12 @@ namespace Tanks.Complete
             m_ChargingVFX.Stop();
         }
 
-        private void Start ()
+        private void Start()
         {
             // The fire axis is based on the player number.
             m_FireButton = "Fire";
             fireAction = m_InputUser.ActionAsset.FindAction(m_FireButton);
-            
+
             fireAction.Enable();
 
             // The rate that the launch force charges up is the range of possible forces by the max charge time.
@@ -98,7 +98,7 @@ namespace Tanks.Complete
         }
 
 
-        private void Update ()
+        private void Update()
         {
             // Computer and Human control Tank use 2 different update functions 
             if (!m_IsComputerControlled)
@@ -123,7 +123,7 @@ namespace Tanks.Complete
 
             // Change the clip to the charging clip and start it playing.
             m_ShootingAudio.clip = m_ChargingClip;
-            m_ShootingAudio.Play ();
+            m_ShootingAudio.Play();
             m_ChargingVFX.Play();
         }
 
@@ -147,7 +147,7 @@ namespace Tanks.Complete
             {
                 // ... use the max force and launch the shell.
                 m_CurrentLaunchForce = m_MaxLaunchForce;
-                Fire ();
+                Fire();
                 m_ChargingVFX.Stop();
             }
             // Otherwise, if the fire button is being held and the shell hasn't been launched yet...
@@ -162,12 +162,12 @@ namespace Tanks.Complete
             else if (fireAction.WasReleasedThisFrame() && !m_Fired)
             {
                 // ... launch the shell.
-                Fire ();
+                Fire();
                 m_ChargingVFX.Stop();
                 m_IsCharging = false;
             }
         }
-        
+
         void HumanUpdate()
         {
             // if there is a cooldown timer, decrement it
@@ -175,7 +175,7 @@ namespace Tanks.Complete
             {
                 m_ShotCooldownTimer -= Time.deltaTime;
             }
-            
+
             // The slider should have a default value of the minimum launch force.
             m_AimSlider.value = m_BaseMinLaunchForce;
 
@@ -184,7 +184,7 @@ namespace Tanks.Complete
             {
                 // ... use the max force and launch the shell.
                 m_CurrentLaunchForce = m_MaxLaunchForce;
-                Fire ();
+                Fire();
             }
             // Otherwise, if the fire button has just started being pressed...
             else if (m_ShotCooldownTimer <= 0 && fireAction.WasPressedThisFrame())
@@ -213,13 +213,13 @@ namespace Tanks.Complete
             else if (fireAction.WasReleasedThisFrame() && !m_Fired)
             {
                 // ... launch the shell.
-                Fire ();
+                Fire();
                 m_ChargingVFX.Stop();
             }
         }
 
 
-        private void Fire ()
+        private void Fire()
         {
             // Set the fired flag so only Fire is only called once.
             m_Fired = true;
@@ -227,7 +227,7 @@ namespace Tanks.Complete
 
             // Create an instance of the shell and store a reference to it's rigidbody.
             Rigidbody shellInstance =
-                Instantiate (m_Shell, m_FireTransform.position, m_FireTransform.rotation) as Rigidbody;
+                Instantiate(m_Shell, m_FireTransform.position, m_FireTransform.rotation) as Rigidbody;
 
             // Set the shell's velocity to the launch force in the fire position's forward direction.
             shellInstance.velocity = m_CurrentLaunchForce * m_FireTransform.forward;
@@ -236,7 +236,7 @@ namespace Tanks.Complete
             explosionData.m_ExplosionForce = m_ExplosionForce;
             explosionData.m_ExplosionRadius = m_ExplosionRadius;
             explosionData.m_MaxDamage = m_MaxDamage;
-            
+
             // Increase the damage if extra damage PowerUp is active
             if (m_HasSpecialShell)
             {
@@ -244,7 +244,7 @@ namespace Tanks.Complete
                 // Reset the default values after increasing the damage of the fired shell
                 m_HasSpecialShell = false;
                 m_SpecialShellMultiplier = 1f;
-                
+
                 PowerUpDetector powerUpDetector = GetComponent<PowerUpDetector>();
                 if (powerUpDetector != null)
                     powerUpDetector.m_HasActivePowerUp = false;
@@ -256,7 +256,7 @@ namespace Tanks.Complete
 
             // Change the clip to the firing clip and play it.
             m_ShootingAudio.clip = m_FireClip;
-            m_ShootingAudio.Play ();
+            m_ShootingAudio.Play();
 
             // Reset the launch force.  This is a precaution in case of missing button events.
             m_CurrentLaunchForce = m_MinLaunchForce;
@@ -278,13 +278,13 @@ namespace Tanks.Complete
         /// <returns>The position at which the projectile will be (ignore obstacle)</returns>
         public Vector3 GetProjectilePosition(float chargingLevel)
         {
-            float chargeLevel = Mathf.Lerp (m_MinLaunchForce, m_MaxLaunchForce, chargingLevel);
-            Vector3 velocity = chargeLevel * m_FireTransform.forward; 
-            
+            float chargeLevel = Mathf.Lerp(m_MinLaunchForce, m_MaxLaunchForce, chargingLevel);
+            Vector3 velocity = chargeLevel * m_FireTransform.forward;
+
             float a = 0.5f * Physics.gravity.y;
             float b = velocity.y;
             float c = m_FireTransform.position.y;
-            
+
             float sqrtContent = b * b - 4 * a * c;
             //no solution
             if (sqrtContent <= 0)
@@ -296,7 +296,7 @@ namespace Tanks.Complete
             float answer2 = (-b - Mathf.Sqrt(sqrtContent)) / (2 * a);
 
             float answer = answer1 > 0 ? answer1 : answer2;
-            
+
             Vector3 position = m_FireTransform.position +
                                new Vector3(velocity.x, 0, velocity.z) *
                                answer;
