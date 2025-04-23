@@ -63,6 +63,7 @@ namespace Tanks.Complete
 
             m_AimSlider.minValue = m_MinLaunchForce;
             m_AimSlider.maxValue = m_MaxLaunchForce;
+            m_ChargingVFX.Stop();
         }
 
         private void Awake()
