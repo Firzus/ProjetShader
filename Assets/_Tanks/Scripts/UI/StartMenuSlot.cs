@@ -10,7 +10,7 @@ namespace Tanks.Complete
     public class StartMenuSlot : MonoBehaviour
     {
         public Color m_SlotColor;                       // The color the tank in that slot will take
-        
+
         [Header("References")]
         public RectTransform m_TankPreviewPosition;     // The Transform on which to place the Tank preview so it display at the right place on screen
         public TextMeshProUGUI m_TankStats;             // The Text to use to display the tank stats
@@ -31,7 +31,7 @@ namespace Tanks.Complete
         public int PlayerControlling { get; set; }          // Which player control this, 1 or 2 (will be -1 for computer)
         public bool IsOpen { get; set; }                    // Is the slot open (not join the game yet) or not (already assigned to p1/p2 or computer)
         public bool IsComputer { get; set; }                // Is the slot used by a computer controlled tank or a player controlled one
-        
+
         private Camera m_MenuCamera;                        // The Camera used to display the menu
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -48,7 +48,7 @@ namespace Tanks.Complete
 
             BackgroundImage.sprite = OpenSlotBackground;
         }
-        
+
         private void Update()
         {
             // If we have a preview slowly rotate it
@@ -87,12 +87,12 @@ namespace Tanks.Complete
                 m_P2ControlButton.interactable = true;
             else if (PlayerControlling == -1)
                 m_ComputerControlButton.interactable = true;
-            
+
             // change the controller 
             PlayerControlling = playerNumber;
-            
+
             // then disable the associated button and set if its a computer or not 
-            switch(playerNumber)
+            switch (playerNumber)
             {
                 case 1:
                     m_P1ControlButton.interactable = false;
@@ -121,10 +121,10 @@ namespace Tanks.Complete
             TankPrefab = prefab;
             //then instantiate it as the preview
             TankPreview = Instantiate(prefab);
-            
+
             // get reference to all components
-            var move = TankPreview.GetComponent<TankMovement> ();
-            var shoot = TankPreview.GetComponent<TankShooting> ();
+            var move = TankPreview.GetComponent<TankMovement>();
+            var shoot = TankPreview.GetComponent<TankShooting>();
             var health = TankPreview.GetComponent<TankHealth>();
 
             // disable them, as this is a visual only preview and doesn't need to react to any gameplay like user input etc.
@@ -133,12 +133,12 @@ namespace Tanks.Complete
 
             // update the tank stats text with this tank stats
             m_TankStats.text = $"Speed {move.m_Speed}\nDamage {shoot.m_MaxDamage}\nHealth: {health.m_StartingHealth}";
-            
+
             //move it to the right preview position so it appears in the right spot on screen
             var position = m_MenuCamera.WorldToScreenPoint(m_TankPreviewPosition.position);
             TankPreview.transform.position =
                 m_MenuCamera.ScreenToWorldPoint(position) + Vector3.back * 3.0f;
-            
+
             // go through all renderers of that tank
             MeshRenderer[] renderers = TankPreview.GetComponentsInChildren<MeshRenderer>();
             for (int i = 0; i < renderers.Length; i++)
@@ -148,13 +148,14 @@ namespace Tanks.Complete
                 {
                     // then when we find the TankColor material
                     if (renderer.materials[j].name.Contains("TankColor"))
+                    // M_TankColor is the name of the material used to color the tank
                     {
                         // Set its color to the slot color
                         renderer.materials[j].color = m_SlotColor;
                     }
                 }
             }
-            
+
             //Disable all audio
             var audioSource = TankPreview.GetComponentsInChildren<AudioSource>();
             foreach (var source in audioSource)

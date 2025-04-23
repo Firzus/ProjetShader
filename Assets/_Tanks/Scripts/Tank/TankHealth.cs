@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 namespace Tanks.Complete
 {
@@ -12,18 +13,24 @@ namespace Tanks.Complete
         public Color m_ZeroHealthColor = Color.red;      // The color the health bar will be when on no health.
         public GameObject m_ExplosionPrefab;                // A prefab that will be instantiated in Awake, then used whenever the tank dies.
         [HideInInspector] public bool m_HasShield;          // Has the tank picked up a shield power up?
-        
-        
+
+        [Header("Death Effects")]
+        [SerializeField] private DissolveController dissolveController;  // Référence au controller de l'effet dissolve
+
         private AudioSource m_ExplosionAudio;               // The audio source to play when the tank explodes.
         private float m_CurrentHealth;                      // How much health the tank currently has.
         private bool m_Dead;                                // Has the tank been reduced beyond zero health yet?
         private float m_ShieldValue;                        // Percentage of reduced damage when the tank has a shield.
         private bool m_IsInvincible;                        // Is the tank invincible in this moment?
 
-        private void Awake ()
+        private void Awake()
         {
             // Set the slider max value to the max health the tank can have
             m_Slider.maxValue = m_StartingHealth;
+
+            // Get the dissolve controller if not assigned
+            if (dissolveController == null)
+                dissolveController = GetComponent<DissolveController>();
         }
 
         private void OnDestroy()
@@ -44,7 +51,7 @@ namespace Tanks.Complete
         }
 
 
-        public void TakeDamage (float amount)
+        public void TakeDamage(float amount)
         {
             // Check if the tank is not invincible
             if (!m_IsInvincible)
@@ -53,12 +60,12 @@ namespace Tanks.Complete
                 m_CurrentHealth -= amount * (1 - m_ShieldValue);
 
                 // Change the UI elements appropriately.
-                SetHealthUI ();
+                SetHealthUI();
 
                 // If the current health is at or below zero and it has not yet been registered, call OnDeath.
                 if (m_CurrentHealth <= 0f && !m_Dead)
                 {
-                    OnDeath ();
+                    OnDeath();
                 }
             }
         }
@@ -83,7 +90,7 @@ namespace Tanks.Complete
         }
 
 
-        public void ToggleShield (float shieldAmount)
+        public void ToggleShield(float shieldAmount)
         {
             // Inverts the value of has shield.
             m_HasShield = !m_HasShield;
@@ -105,23 +112,45 @@ namespace Tanks.Complete
         }
 
 
-        private void SetHealthUI ()
+        private void SetHealthUI()
         {
             // Set the slider's value appropriately.
             m_Slider.value = m_CurrentHealth;
 
             // Interpolate the color of the bar between the choosen colours based on the current percentage of the starting health.
-            m_FillImage.color = Color.Lerp (m_ZeroHealthColor, m_FullHealthColor, m_CurrentHealth / m_StartingHealth);
+            m_FillImage.color = Color.Lerp(m_ZeroHealthColor, m_FullHealthColor, m_CurrentHealth / m_StartingHealth);
         }
 
 
-        private void OnDeath ()
+        private void OnDeath()
         {
             // Set the flag so that this function is only called once.
             m_Dead = true;
 
-            // Turn the tank off.
-            gameObject.SetActive (false);
+            // Trigger dissolve effect if we have a controller
+            if (dissolveController != null)
+            {
+                dissolveController.StartDissolve();
+                StartCoroutine(WaitForDissolveComplete());
+            }
+            else
+            {
+                // Si pas de dissolve effect, on désactive directement
+                gameObject.SetActive(false);
+            }
+        }
+
+        private IEnumerator WaitForDissolveComplete()
+        {
+            // Attend que l'effet soit complètement terminé
+            while (dissolveController.IsDissolving())
+            {
+                // On attend la fin de l'effet
+                yield return null;
+            }
+
+            // Une fois l'effet terminé, désactive le tank
+            gameObject.SetActive(false);
         }
     }
 }
