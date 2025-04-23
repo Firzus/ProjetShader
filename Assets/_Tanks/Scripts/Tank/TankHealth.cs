@@ -30,12 +30,12 @@ namespace Tanks.Complete
 
             // Get the dissolve controller if not assigned
             if (dissolveController == null)
+            {
                 dissolveController = GetComponent<DissolveController>();
+            }
         }
 
-        private void OnDestroy()
-        {
-        }
+        private void OnDestroy() { }
 
         private void OnEnable()
         {
@@ -49,15 +49,9 @@ namespace Tanks.Complete
             // Update the health slider's value and color.
             SetHealthUI();
 
-            // Set the tank to be visible and not dissolving.
-            if (dissolveController.GetCurrentEffect() != DissolveController.VisualEffect.None)
-            {
-                dissolveController.SetVisualEffect(DissolveController.VisualEffect.None);
-
-                Debug.Log("Tank : Dissolve effect disabled.");
-            }
+            // Dissolve Out (appear)
+            dissolveController.StartDissolve(false);
         }
-
 
         public void TakeDamage(float amount)
         {
@@ -78,7 +72,6 @@ namespace Tanks.Complete
             }
         }
 
-
         public void IncreaseHealth(float amount)
         {
             // Check if adding the amount would keep the health within the maximum limit
@@ -96,7 +89,6 @@ namespace Tanks.Complete
             // Change the UI elements appropriately.
             SetHealthUI();
         }
-
 
         public void ToggleShield(float shieldAmount)
         {
@@ -119,7 +111,6 @@ namespace Tanks.Complete
             m_IsInvincible = !m_IsInvincible;
         }
 
-
         private void SetHealthUI()
         {
             // Set the slider's value appropriately.
@@ -128,7 +119,6 @@ namespace Tanks.Complete
             // Interpolate the color of the bar between the choosen colours based on the current percentage of the starting health.
             m_FillImage.color = Color.Lerp(m_ZeroHealthColor, m_FullHealthColor, m_CurrentHealth / m_StartingHealth);
         }
-
 
         private void OnDeath()
         {
