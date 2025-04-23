@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class DissolveController : MonoBehaviour
 {
-    private enum VisualEffect
+    public enum VisualEffect
     {
         None,
         Dissolve,
@@ -40,7 +40,32 @@ public class DissolveController : MonoBehaviour
         }
 
         SetActiveEffect(VisualEffect.Dissolve);
+        // Initialise la valeur de dissolve en fonction du type d'effet
+        currentValue = dissolveIn ? 1.0f : 0.0f;
+        ApplyToAllRenderers(currentValue);
         dissolveCoroutine = StartCoroutine(DissolveRoutine(dissolveIn));
+    }
+
+    public void SetVisualEffect(VisualEffect effect)
+    {
+        if (effect == VisualEffect.Dissolve)
+        {
+            // Quand on active l'effet manuellement, on met la valeur à 1 (objet totalement visible)
+            currentValue = 1.0f;
+            ApplyToAllRenderers(currentValue);
+        }
+        else if (effect == VisualEffect.None)
+        {
+            // Reset la valeur quand on désactive l'effet
+            currentValue = 1.0f;
+            ApplyToAllRenderers(currentValue);
+        }
+        SetActiveEffect(effect);
+    }
+
+    public VisualEffect GetCurrentEffect()
+    {
+        return currentEffect;
     }
 
     private void SetActiveEffect(VisualEffect effect)

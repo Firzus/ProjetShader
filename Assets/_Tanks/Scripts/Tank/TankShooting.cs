@@ -95,6 +95,8 @@ namespace Tanks.Complete
                     break;
                 }
             }
+
+
         }
 
 
@@ -217,7 +219,6 @@ namespace Tanks.Complete
                 m_ChargingVFX.Stop();
             }
         }
-
 
         private void Fire()
         {

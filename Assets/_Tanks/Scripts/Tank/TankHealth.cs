@@ -48,6 +48,14 @@ namespace Tanks.Complete
 
             // Update the health slider's value and color.
             SetHealthUI();
+
+            // Set the tank to be visible and not dissolving.
+            if (dissolveController.GetCurrentEffect() != DissolveController.VisualEffect.None)
+            {
+                dissolveController.SetVisualEffect(DissolveController.VisualEffect.None);
+
+                Debug.Log("Tank : Dissolve effect disabled.");
+            }
         }
 
 
