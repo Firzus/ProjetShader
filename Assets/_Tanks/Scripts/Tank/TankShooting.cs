@@ -202,7 +202,10 @@ namespace Tanks.Complete
             {
                 // Increment the launch force and update the slider.
                 m_CurrentLaunchForce += m_ChargeSpeed * Time.deltaTime;
-                m_ChargingVFX.SetVector3("Scale", new Vector3(1, 1, 1) * CurrentChargeRatio * 2f);
+
+                Vector3 chargingScale = Vector3.Lerp(new Vector3(0f, 0f, 0f), new Vector3(3f, 3f, 3f), CurrentChargeRatio);
+                m_ChargingVFX.SetVector3("Scale", chargingScale);
+
                 m_AimSlider.value = m_CurrentLaunchForce;
             }
             // Otherwise, if the fire button is released and the shell hasn't been launched yet...
