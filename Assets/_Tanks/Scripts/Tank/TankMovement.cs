@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Users;
+using UnityEngine.VFX;
 
 namespace Tanks.Complete
 {
@@ -41,6 +42,9 @@ namespace Tanks.Complete
         private InputAction m_TurnAction;             // The InputAction used to shot, retrieved from TankInputUser
 
         private Vector3 m_RequestedDirection;       // In Direct Control mode, store the direction the user *wants* to go toward
+
+        [SerializeField]
+        private VisualEffect[] m_smokes;
         
         private void Awake ()
         {
@@ -61,6 +65,11 @@ namespace Tanks.Complete
             m_MovementInputValue = 0f;
             m_TurnInputValue = 0f;
 
+            foreach (var smoke in m_smokes)
+            {
+                smoke.Play();
+            }
+
         }
 
 
@@ -68,6 +77,11 @@ namespace Tanks.Complete
         {
             // When the tank is turned off, set it to kinematic so it stops moving.
             m_Rigidbody.isKinematic = true;
+
+            foreach (var smoke in m_smokes)
+            {
+                smoke.Stop();
+            }
         }
 
 
@@ -155,6 +169,7 @@ namespace Tanks.Complete
                     m_MovementAudio.pitch = Random.Range (m_OriginalPitch - m_PitchRange, m_OriginalPitch + m_PitchRange);
                     m_MovementAudio.Play ();
                 }
+
             }
             else
             {
@@ -213,6 +228,13 @@ namespace Tanks.Complete
             
             // Create a vector in the direction the tank is facing with a magnitude based on the input, speed and the time between frames.
             Vector3 movement = transform.forward * speedInput * m_Speed * Time.deltaTime;
+
+            var amount = Mathf.Lerp(0.0f, 32.0f, Mathf.Abs(speedInput));
+
+            foreach (var smoke in m_smokes)
+            {
+                smoke.SetFloat("Amount", amount);
+            }
 
             // Apply this movement to the rigidbody's position.
             m_Rigidbody.MovePosition(m_Rigidbody.position + movement);
