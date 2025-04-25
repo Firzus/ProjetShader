@@ -49,8 +49,8 @@ namespace Tanks.Complete
         private float m_BaseMinLaunchForce;         // The initial value of m_MinLaunchForce
         private float m_ShotCooldownTimer;          // The timer counting down before a shot is allowed again
 
+        // Additional features
         [SerializeField] private VisualEffect m_ChargingVFX; // The visual effect that plays when the tank is charging a shot
-
 
         private void OnEnable()
         {
@@ -228,7 +228,7 @@ namespace Tanks.Complete
 
             // Create an instance of the shell and store a reference to it's rigidbody.
             Rigidbody shellInstance =
-                Instantiate(m_Shell, m_FireTransform.position, m_FireTransform.rotation) as Rigidbody;
+                Instantiate(m_Shell, m_FireTransform.position, m_FireTransform.rotation);
 
             // Set the shell's velocity to the launch force in the fire position's forward direction.
             shellInstance.velocity = m_CurrentLaunchForce * m_FireTransform.forward;
