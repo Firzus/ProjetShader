@@ -23,6 +23,8 @@ namespace Tanks.Complete
         private float m_ShieldValue;                        // Percentage of reduced damage when the tank has a shield.
         private bool m_IsInvincible;                        // Is the tank invincible in this moment?
 
+        [SerializeField] private GameObject DamageUIPrefab; // Prefab for the damage indicator UI
+
         private void Awake()
         {
             // Set the slider max value to the max health the tank can have
@@ -63,6 +65,19 @@ namespace Tanks.Complete
 
                 // Change the UI elements appropriately.
                 SetHealthUI();
+
+                //postition of the damage indicator is above the tank
+                Vector3 position = transform.position;
+                position.y += 2f;
+
+                // spawn a damageindicator
+                FloatingDamage damageIndicator = Instantiate(DamageUIPrefab, position, Quaternion.identity).GetComponent<FloatingDamage>();
+                // face the camera
+                damageIndicator.transform.LookAt(Camera.main.transform.position, Vector3.up);
+
+                //round the damage to int
+                int roundedAmount = Mathf.RoundToInt(amount * (1 - m_ShieldValue));
+                damageIndicator.SetMessage("-" + roundedAmount);
 
                 // If the current health is at or below zero and it has not yet been registered, call OnDeath.
                 if (m_CurrentHealth <= 0f && !m_Dead)
