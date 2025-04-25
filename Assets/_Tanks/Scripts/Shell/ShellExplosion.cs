@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace Tanks.Complete
 {
@@ -12,52 +14,69 @@ namespace Tanks.Complete
         [HideInInspector] public float m_ExplosionForce = 1000f;              // The amount of force added to a tank at the centre of the explosion.
         [HideInInspector] public float m_ExplosionRadius = 5f;                // The maximum distance away from the explosion tanks can be and are still affected.
 
+        // Additional Features
+        [SerializeField] private GameObject m_bulletImpactVFXPrefab;
 
-        private void Start ()
+        private void Start()
         {
             // If it isn't destroyed by then, destroy the shell after its lifetime.
-            Destroy (gameObject, m_MaxLifeTime);
+            Destroy(gameObject, m_MaxLifeTime);
         }
 
-
-        private void OnTriggerEnter (Collider other)
+        private void OnTriggerEnter(Collider other)
         {
-			// Collect all the colliders in a sphere from the shell's current position to a radius of the explosion radius.
-            Collider[] colliders = Physics.OverlapSphere (transform.position, m_ExplosionRadius, m_TankMask);
+            // Collect all the colliders in a sphere from the shell's current position to a radius of the explosion radius.
+            Collider[] colliders = Physics.OverlapSphere(transform.position, m_ExplosionRadius, m_TankMask);
+
+            ImpactVFX(other);
 
             // Go through all the colliders...
             for (int i = 0; i < colliders.Length; i++)
             {
                 // ... and find their rigidbody.
-                Rigidbody targetRigidbody = colliders[i].GetComponent<Rigidbody> ();
+                Rigidbody targetRigidbody = colliders[i].GetComponent<Rigidbody>();
 
                 // If they don't have a rigidbody, go on to the next collider.
                 if (!targetRigidbody)
                     continue;
 
                 // Add an explosion force.
-                targetRigidbody.AddExplosionForce (m_ExplosionForce, transform.position, m_ExplosionRadius);
+                targetRigidbody.AddExplosionForce(m_ExplosionForce, transform.position, m_ExplosionRadius);
 
                 // Find the TankHealth script associated with the rigidbody.
-                TankHealth targetHealth = targetRigidbody.GetComponent<TankHealth> ();
+                TankHealth targetHealth = targetRigidbody.GetComponent<TankHealth>();
 
                 // If there is no TankHealth script attached to the gameobject, go on to the next collider.
                 if (!targetHealth)
                     continue;
 
                 // Calculate the amount of damage the target should take based on it's distance from the shell.
-                float damage = CalculateDamage (targetRigidbody.position);
+                float damage = CalculateDamage(targetRigidbody.position);
 
                 // Deal this damage to the tank.
-                targetHealth.TakeDamage (damage);
+                targetHealth.TakeDamage(damage);
             }
 
             // Destroy the shell.
-            Destroy (gameObject);
+            Destroy(gameObject);
         }
 
+        private void ImpactVFX(Collider collision)
+        {
+            Vector3 impactPoint = collision.ClosestPoint(transform.position);
+            Vector3 impactNormal = (impactPoint - transform.position).normalized;
 
-        private float CalculateDamage (Vector3 targetPosition)
+            GameObject vfxInstance = Instantiate(m_bulletImpactVFXPrefab, impactPoint, Quaternion.LookRotation(impactNormal));
+
+            if (vfxInstance.TryGetComponent<VisualEffect>(out var vfx))
+            {
+                vfx.Play();
+
+                Destroy(vfxInstance, 3f);
+            }
+        }
+
+        private float CalculateDamage(Vector3 targetPosition)
         {
             // Create a vector from the shell to the target.
             Vector3 explosionToTarget = targetPosition - transform.position;
@@ -72,7 +91,7 @@ namespace Tanks.Complete
             float damage = relativeDistance * m_MaxDamage;
 
             // Make sure that the minimum damage is always 0.
-            damage = Mathf.Max (0f, damage);
+            damage = Mathf.Max(0f, damage);
 
             return damage;
         }
