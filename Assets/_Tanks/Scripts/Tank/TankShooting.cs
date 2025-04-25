@@ -52,6 +52,8 @@ namespace Tanks.Complete
         // Additional features
         [SerializeField] private VisualEffect m_ChargingVFX; // The visual effect that plays when the tank is charging a shot
 
+        private Color m_mainColor;
+
         private void OnEnable()
         {
             // When the tank is turned on, reset the launch force, the UI and the power ups
@@ -91,7 +93,8 @@ namespace Tanks.Complete
             {
                 if (meshRenderer.material != null)
                 {
-                    m_ChargingVFX.SetVector4("FlashColor", meshRenderer.material.color);
+                    m_mainColor = meshRenderer.material.color;
+                    m_ChargingVFX.SetVector4("FlashColor", m_mainColor);
                     break;
                 }
             }
@@ -229,6 +232,16 @@ namespace Tanks.Complete
             // Create an instance of the shell and store a reference to it's rigidbody.
             Rigidbody shellInstance =
                 Instantiate(m_Shell, m_FireTransform.position, m_FireTransform.rotation);
+
+            //get the trail effect from the children
+            TrailRenderer trail = shellInstance.GetComponentInChildren<TrailRenderer>();
+
+            // Set the trail effect to the same color as the tank
+            if (trail != null)
+            {
+                trail.material.SetColor("_Color01", m_mainColor * 1.1f);
+                trail.material.SetColor("_Color02", m_mainColor);
+            }
 
             // Set the shell's velocity to the launch force in the fire position's forward direction.
             shellInstance.velocity = m_CurrentLaunchForce * m_FireTransform.forward;

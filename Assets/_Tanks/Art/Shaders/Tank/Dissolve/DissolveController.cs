@@ -125,6 +125,8 @@ public class DissolveController : MonoBehaviour
         {
             if (r == null) continue;
 
+            if (propertyBlock == null) continue;
+
             r.GetPropertyBlock(propertyBlock);
             propertyBlock.SetFloat(_dissolveProperty, value);
             r.SetPropertyBlock(propertyBlock);
